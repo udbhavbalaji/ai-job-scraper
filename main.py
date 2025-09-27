@@ -8,9 +8,9 @@ from src.ai_extractor import get_structured_job_details
 from src.scraper import LinkedinScraper
 
 app = FastAPI(
-    title="Vercel + FastAPI",
-    description="Vercel + FastAPI",
-    version="1.0.0",
+    title="AI Job Scraper",
+    description="API endpoint for tool that extracts important job information from a linkedin link.",
+    version="0.1.0",
 )
 
 
@@ -21,6 +21,9 @@ app.mount("/public", StaticFiles(directory="public"), name="public")
 async def favicon():
     return FileResponse("public/favicon.ico")
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 
 @app.get("/api/data")
 def get_sample_data():
