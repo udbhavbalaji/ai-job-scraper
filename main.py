@@ -21,7 +21,7 @@ app.mount("/public", StaticFiles(directory="public"), name="public")
 async def favicon():
     return FileResponse("public/favicon.ico")
 
-@app.get("/health")
+@app.head("/health")
 def health():
     return {"status": "ok"}
 
