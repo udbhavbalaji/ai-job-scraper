@@ -1,0 +1,14 @@
+[project]
+name = "ai-job-scraper"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.117.1",
+    "fastapi-cli>=0.0.13",
+    "openai>=1.109.1",
+    "selenium>=4.35.0",
+    "ujson>=5.11.0",
+    "uvicorn>=0.37.0",
+]

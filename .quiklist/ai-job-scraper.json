@@ -1,0 +1,21 @@
+{
+  "checked": [
+    {
+      "checked": true,
+      "description": "add endpoint that extracts job data from the job id",
+      "priority": "HIGH",
+      "createdAt": "2025-09-27T08:17:20.740Z",
+      "updatedAt": "2025-09-27T08:18:18.892Z"
+    }
+  ],
+  "unchecked": [
+    {
+      "checked": false,
+      "description": "add endpoint that takes in job description and calls ai to structure the important information in a proper schema",
+      "priority": "HIGH",
+      "createdAt": "2025-09-27T08:18:04.905Z",
+      "updatedAt": "2025-09-27T08:20:42.381Z",
+      "deadline": "2025-09-28T00:00:00.000Z"
+    }
+  ]
+}
