@@ -39,7 +39,7 @@ async def favicon():
 
 @app.head("/health")
 def health():
-    return {"status": "ok"}
+    return JSONResponse(content={"status": "ok"})
 
 @app.get("/job-details-playwright/{job_id}")
 async def get_job_details_with_playwright(job_id: str): 
@@ -50,12 +50,10 @@ async def get_job_details_with_playwright(job_id: str):
         result = await scraper.scrape_job_text(job_url)
         output = result['description']
         
-        # return {"job_url": job_url, "job_description": output}
         return JSONResponse({"job_url": job_url, "job_description": output})
         
     except Exception as e:
-        print(e)
-        return {"error": str(e)}
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 @app.get("/job-details/{job_id}")
 def get_job_details(job_id: str):
@@ -71,23 +69,20 @@ def get_job_details(job_id: str):
         return JSONResponse(output)
         
     except:
-        return {"error": "Job not found"}
+        return JSONResponse(content={"error": "Job not found", }, status_code=404)
     finally:
         scraper.close()
 
 class JobInfo(BaseModel):
     description: str
 
-@app.get("/extract-job-info")
+@app.post("/extract-job-info")
 def extract_job_info(job_desc: JobInfo):
     try:
-        print(job_desc.description)
         json_response = get_structured_job_details(job_desc.description)
-        print(json_response)
         return JSONResponse(json_response)
     except Exception as e:
-        print(e)
-        return {"error": str(e)}
+        return JSONResponse(content={"error": str(e)}, status_code=500)
     
 @app.get("/", response_class=HTMLResponse)
 def read_root():
