@@ -1,11 +1,15 @@
-from fastapi import FastAPI
+import time
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
 from src.ai_extractor import get_structured_job_details
+import logging
+from src.scraper import LinkedinPlaywrightScraper, LinkedinScraper
 
-from src.scraper import LinkedinScraper
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("timing")
 
 app = FastAPI(
     title="AI Job Scraper",
@@ -16,6 +20,18 @@ app = FastAPI(
 
 app.mount("/public", StaticFiles(directory="public"), name="public")
 
+@app.middleware("http")
+async def log_request_duration(request: Request, call_next):
+    start_time = time.time()
+
+    response = await call_next(request)
+
+    duration = time.time() - start_time
+
+    logger.info(f"{request.method} {request.url.path} completed in {duration:.3f}s")
+
+    return response
+
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
@@ -25,29 +41,21 @@ async def favicon():
 def health():
     return {"status": "ok"}
 
-@app.get("/api/data")
-def get_sample_data():
-    return {
-        "data": [
-            {"id": 1, "name": "Sample Item 1", "value": 100},
-            {"id": 2, "name": "Sample Item 2", "value": 200},
-            {"id": 3, "name": "Sample Item 3", "value": 300}
-        ],
-        "total": 3,
-        "timestamp": "2024-01-01T00:00:00Z"
-    }
+@app.get("/job-details-playwright/{job_id}")
+async def get_job_details_with_playwright(job_id: str): 
+    scraper = LinkedinPlaywrightScraper()
 
-
-@app.get("/api/items/{item_id}")
-def get_item(item_id: int):
-    return {
-        "item": {
-            "id": item_id,
-            "name": "Sample Item " + str(item_id),
-            "value": item_id * 100
-        },
-        "timestamp": "2024-01-01T00:00:00Z"
-    }
+    job_url = f"https://linkedin.com/jobs/view/{job_id}"
+    try:
+        result = await scraper.scrape_job_text(job_url)
+        output = result['description']
+        
+        # return {"job_url": job_url, "job_description": output}
+        return JSONResponse({"job_url": job_url, "job_description": output})
+        
+    except Exception as e:
+        print(e)
+        return {"error": str(e)}
 
 @app.get("/job-details/{job_id}")
 def get_job_details(job_id: str):
@@ -81,8 +89,6 @@ def extract_job_info(job_desc: JobInfo):
         print(e)
         return {"error": str(e)}
     
-
-
 @app.get("/", response_class=HTMLResponse)
 def read_root():
     return """
