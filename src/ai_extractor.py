@@ -10,16 +10,20 @@ ai_client = OpenAI(
     base_url="https://openrouter.ai/api/v1", api_key=os.getenv("OPENROUTER_API_KEY")
 )
 
+
 response_schema = {
     "type": "object",
     "properties": {
         "title": {"type": "string"},
         "company_name": {"type": "string"},
         "work_arrangement": {"type": "string", "enum": ["on_site", "hybrid", "remote"]},
-        "job_type": {"type": "string", "enum": ["full-time", "part-time", "contract", "internship"]},
+        "job_type": {
+            "type": "string",
+            "enum": ["full-time", "part-time", "contract", "internship"],
+        },
         "location_city": {"type": "string"},
         "location_country": {"type": "string"},
-        "description": {"type": "string"},
+        "description_text": {"type": "string"},
         "required_qualifications": {"type": "array", "items": {"type": "string"}},
         "preferred_qualifications": {"type": "array", "items": {"type": "string"}},
         "technical_skills": {"type": "array", "items": {"type": "string"}},
@@ -33,6 +37,24 @@ response_schema = {
         "linguistic_requirements": {"type": "string"},
         "posted_date": {"type": "string"},
     },
+    "required": [
+        "title",
+        "company_name",
+        "work_arrangement",
+        "job_type",
+        "location_city",
+        "location_country",
+        "description_text",
+        "required_qualifications",
+        "preferred_qualifications",
+        "technical_skills",
+        "non_technical_skills",
+        "salary_currency",
+        "immigration_requirements",
+        "benefits",
+        "linguistic_requirements",
+        "posted_date",
+    ],
 }
 
 
@@ -44,14 +66,18 @@ def get_structured_job_details(
         messages=[
             {
                 "role": "system",
-                "content": "You are a brilliant text analyzer, who excels at analyzing large pieces of text and extract important information from it into a structured JSON format. Given a job description, retrieve the following information in the following format(JSON): { title: string; company_name: string; work_arrangement: 'on-site' | 'hybrid' | 'remote'; job_type: string; location_city: string; location_country: string; description: string; technical_skills: string[]; non_technical_skills: string[]; salary_min: number; salary_max: number; immigration_reqs: string | undefined; benefits: string[]; linguistic_reqs: string | undefined; posted_date: string; url: string; }",
+                # "content": "You are a brilliant text analyzer, who excels at analyzing large pieces of text and extract important information from it into a structured JSON format. Given a job description, retrieve the following information in the following format(JSON): { title: string; company_name: string; work_arrangement: 'on-site' | 'hybrid' | 'remote'; job_type: string; location_city: string; location_country: string; description: string; technical_skills: string[]; non_technical_skills: string[]; salary_min: number; salary_max: number; immigration_reqs: string | undefined; benefits: string[]; linguistic_reqs: string | undefined; posted_date: string; url: string; }",
+                "content": "You are a brilliant text analyzer, who excels at analyzing large pieces of text and extract important information from it into a structured JSON format. Given a job description, retrieve the important information and return it in the format of teh supplied JSON schema. For values that you cannot find, if its a string field, return an empty string. However, for the salary fields, if not found, return null. Stick to the format and diverting from this schema can have bad outcomes.",
             },
             {
                 "role": "user",
                 "content": f"Extract the job posting information from this job: {job_description}",
             },
         ],
-        response_format={"type": "json_schema", "json_schema": {"schema": response_schema}}
+        response_format={
+            "type": "json_schema",
+            "json_schema": {"schema": response_schema},
+        },
     )
     json_str_output = json.loads(response.choices[0].message.content)
     return json_str_output
